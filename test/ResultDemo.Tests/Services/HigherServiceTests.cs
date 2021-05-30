@@ -36,7 +36,7 @@ namespace ResultDemo.Tests.Services
             var result = subject.HandleSpecificErrors("not a valid name");
 
             // assert
-            Assert.AreEqual("Could not find sample thingy :(", result);
+            Assert.AreEqual("Could not find sample", result);
         }
 
         [Test]
@@ -49,7 +49,7 @@ namespace ResultDemo.Tests.Services
             var result = subject.HandleSpecificErrors("negative");
 
             // assert
-            Assert.AreEqual("Cannot add negative numbers!!", result);
+            Assert.AreEqual("Cannot add negative numbers", result);
         }
 
         [Test]
