@@ -21,11 +21,11 @@ namespace ResultDemo.Services
         public Result<string, IOtherServiceError> GetResult(bool success1, bool success2, string sampleName)
         {
             return this.otherOperation.Invoke(success1)
-                .WithErrorType<string, OtherError, IOtherServiceError>()
+                .ConvertErrorType<OtherError, IOtherServiceError>()
                 .ContinueWith((ok) =>
                 {
                     return this.interestingOperation.Invoke(success2)
-                        .WithErrorType<string, InterestingError, IOtherServiceError>()
+                        .ConvertErrorType<InterestingError, IOtherServiceError>()
                         .ContinueWith((ok) =>
                         {
                             return this.sampleService.GetResult(sampleName).GetValue() switch

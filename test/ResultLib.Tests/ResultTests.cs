@@ -4,7 +4,7 @@ using System;
 
 namespace ResultDemo.Tests
 {
-    public class ResultExtensionsTests
+    public class ResultTests
     {
         internal interface ITestError { }
 
@@ -223,7 +223,7 @@ namespace ResultDemo.Tests
 
             // act
             // assert
-            Assert.Throws<ArgumentException>(() => subject.AsOk());
+            Assert.Throws<InvalidOperationException>(() => subject.AsOk());
         }
 
         [Test]
@@ -248,7 +248,7 @@ namespace ResultDemo.Tests
 
             // act
             // assert
-            Assert.Throws<ArgumentException>(() => subject.AsError());
+            Assert.Throws<InvalidOperationException>(() => subject.AsError());
         }
     }
 }

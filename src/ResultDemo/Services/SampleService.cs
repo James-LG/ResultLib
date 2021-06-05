@@ -17,7 +17,7 @@ namespace ResultDemo
         public Result<int, ISampleServiceError> GetResult(string sampleName)
         {
             return this.getSampleDtoOperation.Get(sampleName)
-                .WithErrorType<SampleDto, NotFoundError, ISampleServiceError>()
+                .ConvertErrorType<NotFoundError, ISampleServiceError>()
                 .ContinueWith((ok) =>
                 {
                     return this.addOperation.Add(ok.Something, 1)
@@ -25,7 +25,7 @@ namespace ResultDemo
                         {
                             return this.addOperation.Add(ok, 1);
                         })
-                        .WithErrorType<int, AddNegativeError, ISampleServiceError>();
+                        .ConvertErrorType<AddNegativeError, ISampleServiceError>();
                 });
         }
     }
