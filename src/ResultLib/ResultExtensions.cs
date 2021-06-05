@@ -72,5 +72,63 @@ namespace ResultLib
                     throw new ArgumentException($"{nameof(result)} must have either a non-null {nameof(result.Ok)}, or {nameof(result.Error)} property.");
             }
         }
+
+        /// <summary>
+        /// Checks whether the result is <typeparamref name="TOk"/>.
+        /// </summary>
+        /// <typeparam name="TOk">The result's Ok type.</typeparam>
+        /// <typeparam name="TError">The result's Error type.</typeparam>
+        /// <param name="result">The result to operate on.</param>
+        /// <returns>Whether the result is <typeparamref name="TOk"/>.</returns>
+        public static bool IsOk<TOk, TError>(this Result<TOk, TError> result)
+        {
+            return result.Ok != null;
+        }
+
+        /// <summary>
+        /// Checks whether the result is <typeparamref name="TError"/>.
+        /// </summary>
+        /// <typeparam name="TOk">The result's Ok type.</typeparam>
+        /// <typeparam name="TError">The result's Error type.</typeparam>
+        /// <param name="result">The result to operate on.</param>
+        /// <returns>Whether the result is <typeparamref name="TError"/>.</returns>
+        public static bool IsError<TOk, TError>(this Result<TOk, TError> result)
+        {
+            return result.Error != null;
+        }
+
+        /// <summary>
+        /// Gets the result's <typeparamref name="TOk"/> value or throws.
+        /// </summary>
+        /// <typeparam name="TOk">The result's Ok type.</typeparam>
+        /// <typeparam name="TError">The result's Error type.</typeparam>
+        /// <param name="result">The result to operate on.</param>
+        /// <returns>The result's <typeparamref name="TOk"/>.</returns>
+        /// <exception cref="ArgumentException">When the result does not contain an <typeparamref name="TOk"/> value.</exception>
+        /// <remarks>
+        /// Only use this method when you already know the result is Ok, or it is acceptable to throw.
+        /// Otherwise prefer switching on the type of <see cref="Result{TOk, TError}.GetValue"/>.
+        /// </remarks>
+        public static TOk AsOk<TOk, TError>(this Result<TOk, TError> result)
+        {
+            return result.Ok ?? throw new ArgumentException($"{nameof(result.Ok)} is null");
+        }
+
+        /// <summary>
+        /// Gets the result's <typeparamref name="TError"/> value or throws.
+        /// </summary>
+        /// <typeparam name="TOk">The result's Ok type.</typeparam>
+        /// <typeparam name="TError">The result's Error type.</typeparam>
+        /// <param name="result">The result to operate on.</param>
+        /// <returns>The result's <typeparamref name="TError"/>.</returns>
+        /// <exception cref="ArgumentException">When the result does not contain an <typeparamref name="TError"/> value.</exception>
+        /// <remarks>
+        /// Only use this method when you already know the result is Ok, or it is acceptable to throw.
+        /// Otherwise prefer switching on the type of <see cref="Result{TOk, TError}.GetValue"/>.
+        /// </remarks>
+        public static TError AsError<TOk, TError>(this Result<TOk, TError> result)
+        {
+            return result.Error ?? throw new ArgumentException($"{nameof(result.Error)} is null");
+        }
     }
 }

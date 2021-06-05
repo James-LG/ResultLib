@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using ResultLib;
+using System;
 
 namespace ResultDemo.Tests
 {
@@ -147,6 +148,107 @@ namespace ResultDemo.Tests
             Assert.AreEqual(default, capturedValue2);
             Assert.IsInstanceOf<TestError>(result.GetValue());
             Assert.AreSame(testError, result.Error);
+        }
+
+        [Test]
+        public void IsOk_ShouldReturnTrueIfOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            // act
+            var val = subject.IsOk();
+
+            // assert
+            Assert.IsTrue(val);
+        }
+
+        [Test]
+        public void IsOk_ShouldReturnFalseIfError()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromError(new TestError());
+
+            // act
+            var val = subject.IsOk();
+
+            // assert
+            Assert.IsFalse(val);
+        }
+
+        [Test]
+        public void IsError_ShouldReturnTrueIfError()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromError(new TestError());
+
+            // act
+            var val = subject.IsError();
+
+            // assert
+            Assert.IsTrue(val);
+        }
+
+        [Test]
+        public void IsError_ShouldReturnFalseIfOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            // act
+            var val = subject.IsError();
+
+            // assert
+            Assert.IsFalse(val);
+        }
+
+        [Test]
+        public void AsOk_ShouldReturnValueIfOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            // act
+            var val = subject.AsOk();
+
+            // assert
+            Assert.AreEqual("hi", val);
+        }
+
+        [Test]
+        public void AsOk_ShouldThrowIfNotOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromError(new TestError());
+
+            // act
+            // assert
+            Assert.Throws<ArgumentException>(() => subject.AsOk());
+        }
+
+        [Test]
+        public void AsError_ShouldReturnValueIfError()
+        {
+            // assert
+            var error = new TestError();
+            var subject = Result<string, TestError>.FromError(error);
+
+            // act
+            var val = subject.AsError();
+
+            // assert
+            Assert.AreSame(error, val);
+        }
+
+        [Test]
+        public void AsError_ShouldThrowIfNotOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            // act
+            // assert
+            Assert.Throws<ArgumentException>(() => subject.AsError());
         }
     }
 }
