@@ -153,7 +153,7 @@ namespace ResultLib
         /// </remarks>
         public TOk AsOk()
         {
-            return this.Ok ?? throw new InvalidOperationException($"{nameof(this.Ok)} is null");
+            return this.Ok ?? throw new InvalidOperationException($"Result not Ok: {this.Error!.GetType().Name}");
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace ResultLib
         /// </remarks>
         public TError AsError()
         {
-            return this.Error ?? throw new InvalidOperationException($"{nameof(this.Error)} is null");
+            return this.Error ?? throw new InvalidOperationException($"Result not Error: {this.Ok!.GetType().Name}");
         }
     }
 }

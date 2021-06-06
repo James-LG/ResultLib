@@ -223,7 +223,20 @@ namespace ResultDemo.Tests
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(() => subject.AsOk());
+            var ex = Assert.Throws<InvalidOperationException>(() => subject.AsOk());
+            Assert.AreEqual($"Result not Ok: {typeof(TestError).Name}", ex.Message);
+        }
+
+        [Test]
+        public void AsOk_ShouldThrowIfNotOkWithInstanceName()
+        {
+            // assert
+            var subject = Result<string, ITestError>.FromError(new TestError());
+
+            // act
+            // assert
+            var ex = Assert.Throws<InvalidOperationException>(() => subject.AsOk());
+            Assert.AreEqual($"Result not Ok: {typeof(TestError).Name}", ex.Message); // Should be name of TestError not ITestError.
         }
 
         [Test]
@@ -248,7 +261,20 @@ namespace ResultDemo.Tests
 
             // act
             // assert
-            Assert.Throws<InvalidOperationException>(() => subject.AsError());
+            var ex = Assert.Throws<InvalidOperationException>(() => subject.AsError());
+            Assert.AreEqual($"Result not Error: {typeof(string).Name}", ex.Message);
+        }
+
+        [Test]
+        public void AsError_ShouldThrowIfNotOkWithInstanceName()
+        {
+            // assert
+            var subject = Result<object, TestError>.FromOk("hi");
+
+            // act
+            // assert
+            var ex = Assert.Throws<InvalidOperationException>(() => subject.AsError());
+            Assert.AreEqual($"Result not Error: {typeof(string).Name}", ex.Message); // Should be name of string, not object.
         }
     }
 }
