@@ -4,6 +4,7 @@
 namespace ResultLib
 {
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Represents the result of an operation. Contains either <see cref="Ok"/> or <see cref="Error"/> but not both.
@@ -106,6 +107,25 @@ namespace ResultLib
         }
 
         /// <summary>
+        /// Performs and returns the <paramref name="continueFunc"/> if the result is Ok, else
+        /// it immediately returns.
+        /// </summary>
+        /// <typeparam name="TOk2">The Ok type of the given <paramref name="continueFunc"/>.</typeparam>
+        /// <param name="continueFunc">The function to perform if this result is Ok.</param>
+        /// <returns>
+        /// The result of the <paramref name="continueFunc"/> or a new result if it was an Error.
+        /// </returns>
+        public Task<Result<TOk2, TError>> ContinueWithAsync<TOk2>(Func<TOk, Task<Result<TOk2, TError>>> continueFunc)
+        {
+            return this.GetValue() switch
+            {
+                TOk ok => continueFunc(ok),
+                TError error => Task.FromResult(Result<TOk2, TError>.FromError(error)),
+                _ => throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property.")
+            };
+        }
+
+        /// <summary>
         /// Performs the <paramref name="continueFunc"/> if the result is Ok, else it immediately returns.
         /// </summary>
         /// <param name="continueFunc">The function to perform if this result is Ok.</param>
@@ -122,6 +142,21 @@ namespace ResultLib
                 default:
                     throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property.");
             }
+        }
+
+        /// <summary>
+        /// Performs the <paramref name="continueFunc"/> if the result is Ok, else it immediately returns.
+        /// </summary>
+        /// <param name="continueFunc">The function to perform if this result is Ok.</param>
+        /// <returns>The task performing the Ok operation or a completed task.</returns>
+        public Task ContinueWithAsync(Func<TOk, Task> continueFunc)
+        {
+            return this.GetValue() switch
+            {
+                TOk ok => continueFunc(ok),
+                TError => Task.CompletedTask,
+                _ => throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property."),
+            };
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using ResultLib;
 using System;
+using System.Threading.Tasks;
 
 namespace ResultDemo.Tests
 {
@@ -42,6 +43,44 @@ namespace ResultDemo.Tests
             subject.ContinueWith((ok) =>
             {
                 capturedValue = ok;
+            });
+
+            // assert
+            Assert.AreEqual(default, capturedValue);
+        }
+
+        [Test]
+        public async Task ContinueWithAsync_Action_ShouldDoIfOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            var capturedValue = (string?)default;
+
+            // act
+            await subject.ContinueWithAsync((ok) =>
+            {
+                capturedValue = ok;
+                return Task.CompletedTask;
+            });
+
+            // assert
+            Assert.AreEqual("hi", capturedValue);
+        }
+
+        [Test]
+        public async Task ContinueWithAsync_Action_ShouldNotDoIfError()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromError(new TestError());
+
+            var capturedValue = (string?)default;
+
+            // act
+            await subject.ContinueWithAsync((ok) =>
+            {
+                capturedValue = ok;
+                return Task.CompletedTask;
             });
 
             // assert
@@ -140,6 +179,108 @@ namespace ResultDemo.Tests
                 {
                     capturedValue2 = ok;
                     return Result<int, TestError>.FromOk(1);
+                });
+            });
+
+            // assert
+            Assert.AreEqual("hi", capturedValue);
+            Assert.AreEqual(default, capturedValue2);
+            Assert.IsInstanceOf<TestError>(result.GetValue());
+            Assert.AreSame(testError, result.Error);
+        }
+
+        [Test]
+        public async Task ContinueWithAsync_Func_OuterResultError_ShouldReturnOuterResult()
+        {
+            // assert
+            var testError = new TestError();
+            var subject = Result<string, TestError>.FromError(testError);
+
+            var capturedValue = (string?)default;
+
+            // act
+            var result = await subject.ContinueWithAsync((ok) =>
+            {
+                capturedValue = ok;
+                return Task.FromResult(Result<int, TestError>.FromOk(1));
+            });
+
+            // assert
+            Assert.AreEqual(default, capturedValue);
+            Assert.IsInstanceOf<TestError>(result.GetValue());
+            Assert.AreSame(testError, result.Error);
+        }
+
+        [Test]
+        public async Task ContinueWithAsync_Func_OuterResultOk_ShouldReturnInnerResult()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            var capturedValue = (string?)default;
+
+            // act
+            var result = await subject.ContinueWithAsync((ok) =>
+            {
+                capturedValue = ok;
+                return Task.FromResult(Result<int, TestError>.FromOk(1));
+            });
+
+            // assert
+            Assert.AreEqual("hi", capturedValue);
+            Assert.IsInstanceOf<int>(result.GetValue());
+            Assert.AreEqual(1, result.Ok);
+        }
+
+        [Test]
+        public async Task ContinueWithAsync_Func_MultipleChained_ShouldReturnFinalOk()
+        {
+            // assert
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            var capturedValue = (string?)default;
+            var capturedValue2 = (string?)default;
+
+            // act
+            var result = await subject.ContinueWithAsync((ok) =>
+            {
+                capturedValue = ok;
+                var resultFromService = Result<string, TestError>.FromOk("text2");
+
+                return resultFromService.ContinueWithAsync((ok) =>
+                {
+                    capturedValue2 = ok;
+                    return Task.FromResult(Result<int, TestError>.FromOk(1));
+                });
+            });
+
+            // assert
+            Assert.AreEqual("hi", capturedValue);
+            Assert.AreEqual("text2", capturedValue2);
+            Assert.IsInstanceOf<int>(result.GetValue());
+            Assert.AreEqual(1, result.Ok);
+        }
+
+        [Test]
+        public async Task ContinueWithAsync_Func_MultipleChained_ShouldReturnFirstError()
+        {
+            // assert
+            var testError = new TestError();
+            var subject = Result<string, TestError>.FromOk("hi");
+
+            var capturedValue = (string?)default;
+            var capturedValue2 = (string?)default;
+
+            // act
+            var result = await subject.ContinueWithAsync((ok) =>
+            {
+                capturedValue = ok;
+                var resultFromService = Result<string, TestError>.FromError(testError);
+
+                return resultFromService.ContinueWithAsync((ok) =>
+                {
+                    capturedValue2 = ok;
+                    return Task.FromResult(Result<int, TestError>.FromOk(1));
                 });
             });
 
