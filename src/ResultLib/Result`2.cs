@@ -12,6 +12,8 @@ namespace ResultLib
     /// <typeparam name="TOk">The type of the result if the operation was a success.</typeparam>
     /// <typeparam name="TError">The type of the error if the operation encountered an error.</typeparam>
     public class Result<TOk, TError>
+        where TOk : notnull
+        where TError : notnull
     {
         private readonly bool isOk;
 
@@ -31,6 +33,18 @@ namespace ResultLib
         /// Gets the error result, if available.
         /// </summary>
         public TError? Error { get; }
+
+        /// <summary>
+        /// Converts an <typeparamref name="TOk"/> value into a <see cref="Result{TOk, TError}"/>.
+        /// </summary>
+        /// <param name="ok">The ok value.</param>
+        public static implicit operator Result<TOk, TError>(TOk ok) => FromOk(ok);
+
+        /// <summary>
+        /// Converts an <typeparamref name="TError"/> value into a <see cref="Result{TOk, TError}"/>.
+        /// </summary>
+        /// <param name="error">The error value.</param>
+        public static implicit operator Result<TOk, TError>(TError error) => FromError(error);
 
         /// <summary>
         /// Create a result containing an <see cref="Ok"/> value.
@@ -62,11 +76,11 @@ namespace ResultLib
         {
             if (this.isOk)
             {
-                return this.Ok!;
+                return this.AsOk();
             }
             else
             {
-                return this.Error!;
+                return this.AsError();
             }
         }
 
@@ -77,14 +91,12 @@ namespace ResultLib
         /// <typeparam name="TError2">The new (more generic) Error type.</typeparam>
         /// <returns>The modified result.</returns>
         public Result<TOk, TError2> ConvertErrorType<TError1, TError2>()
-            where TError1 : TError2
+            where TError2 : notnull
+            where TError1 : TError2, TError
         {
-            return this.GetValue() switch
-            {
-                TOk ok => Result<TOk, TError2>.FromOk(ok),
-                TError1 error => Result<TOk, TError2>.FromError(error),
-                _ => throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property.")
-            };
+            return this.IsOk()
+                ? this.AsOk()
+                : Result<TOk, TError2>.FromError((TError1)this.AsError());
         }
 
         /// <summary>
@@ -97,13 +109,11 @@ namespace ResultLib
         /// The result of the <paramref name="continueFunc"/> or a new result if it was an Error.
         /// </returns>
         public Result<TOk2, TError> ContinueWith<TOk2>(Func<TOk, Result<TOk2, TError>> continueFunc)
+            where TOk2 : notnull
         {
-            return this.GetValue() switch
-            {
-                TOk ok => continueFunc(ok),
-                TError error => Result<TOk2, TError>.FromError(error),
-                _ => throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property.")
-            };
+            return this.IsOk()
+                ? continueFunc(this.AsOk())
+                : this.AsError();
         }
 
         /// <summary>
@@ -116,31 +126,22 @@ namespace ResultLib
         /// The result of the <paramref name="continueFunc"/> or a new result if it was an Error.
         /// </returns>
         public Task<Result<TOk2, TError>> ContinueWithAsync<TOk2>(Func<TOk, Task<Result<TOk2, TError>>> continueFunc)
+            where TOk2 : notnull
         {
-            return this.GetValue() switch
-            {
-                TOk ok => continueFunc(ok),
-                TError error => Task.FromResult(Result<TOk2, TError>.FromError(error)),
-                _ => throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property.")
-            };
+            return this.IsOk()
+                ? continueFunc(this.AsOk())
+                : Task.FromResult(Result<TOk2, TError>.FromError(this.AsError()));
         }
 
         /// <summary>
         /// Performs the <paramref name="continueFunc"/> if the result is Ok, else it immediately returns.
         /// </summary>
         /// <param name="continueFunc">The function to perform if this result is Ok.</param>
-        public void ContinueWith(Action<TOk> continueFunc)
+        public void ContinueWithAction(Action<TOk> continueFunc)
         {
-            switch (this.GetValue())
+            if (this.IsOk())
             {
-                case TOk ok:
-                    continueFunc(ok);
-                    break;
-                case TError:
-                    // do nothing
-                    break;
-                default:
-                    throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property.");
+                continueFunc(this.AsOk());
             }
         }
 
@@ -149,14 +150,11 @@ namespace ResultLib
         /// </summary>
         /// <param name="continueFunc">The function to perform if this result is Ok.</param>
         /// <returns>The task performing the Ok operation or a completed task.</returns>
-        public Task ContinueWithAsync(Func<TOk, Task> continueFunc)
+        public Task ContinueWithActionAsync(Func<TOk, Task> continueFunc)
         {
-            return this.GetValue() switch
-            {
-                TOk ok => continueFunc(ok),
-                TError => Task.CompletedTask,
-                _ => throw new InvalidOperationException($"Must have either a non-null {nameof(this.Ok)}, or {nameof(this.Error)} property."),
-            };
+            return this.IsOk()
+                ? continueFunc(this.AsOk())
+                : Task.CompletedTask;
         }
 
         /// <summary>
@@ -165,7 +163,7 @@ namespace ResultLib
         /// <returns>Whether the result is <typeparamref name="TOk"/>.</returns>
         public bool IsOk()
         {
-            return this.Ok != null;
+            return this.isOk;
         }
 
         /// <summary>
@@ -174,7 +172,7 @@ namespace ResultLib
         /// <returns>Whether the result is <typeparamref name="TError"/>.</returns>
         public bool IsError()
         {
-            return this.Error != null;
+            return !this.IsOk();
         }
 
         /// <summary>

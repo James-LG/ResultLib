@@ -14,7 +14,7 @@ namespace ResultDemo.Tests
         internal class TestError2 : ITestError { }
 
         [Test]
-        public void ContinueWith_Action_ShouldDoIfOk()
+        public void ContinueWithAction_ShouldDoIfOk()
         {
             // assert
             var subject = Result<string, TestError>.FromOk("hi");
@@ -22,7 +22,7 @@ namespace ResultDemo.Tests
             var capturedValue = (string?)default;
 
             // act
-            subject.ContinueWith((ok) =>
+            subject.ContinueWithAction((ok) =>
             {
                 capturedValue = ok;
             });
@@ -32,7 +32,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public void ContinueWith_Action_ShouldNotDoIfError()
+        public void ContinueWithAction_ShouldNotDoIfError()
         {
             // assert
             var subject = Result<string, TestError>.FromError(new TestError());
@@ -40,7 +40,7 @@ namespace ResultDemo.Tests
             var capturedValue = (string?)default;
 
             // act
-            subject.ContinueWith((ok) =>
+            subject.ContinueWithAction((ok) =>
             {
                 capturedValue = ok;
             });
@@ -50,7 +50,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public async Task ContinueWithAsync_Action_ShouldDoIfOk()
+        public async Task ContinueWithActionAsync_ShouldDoIfOk()
         {
             // assert
             var subject = Result<string, TestError>.FromOk("hi");
@@ -58,7 +58,7 @@ namespace ResultDemo.Tests
             var capturedValue = (string?)default;
 
             // act
-            await subject.ContinueWithAsync((ok) =>
+            await subject.ContinueWithActionAsync((ok) =>
             {
                 capturedValue = ok;
                 return Task.CompletedTask;
@@ -69,7 +69,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public async Task ContinueWithAsync_Action_ShouldNotDoIfError()
+        public async Task ContinueWithActionAsync_ShouldNotDoIfError()
         {
             // assert
             var subject = Result<string, TestError>.FromError(new TestError());
@@ -77,7 +77,7 @@ namespace ResultDemo.Tests
             var capturedValue = (string?)default;
 
             // act
-            await subject.ContinueWithAsync((ok) =>
+            await subject.ContinueWithActionAsync((ok) =>
             {
                 capturedValue = ok;
                 return Task.CompletedTask;
@@ -88,7 +88,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public void ContinueWith_Func_OuterResultError_ShouldReturnOuterResult()
+        public void ContinueWith_OuterResultError_ShouldReturnOuterResult()
         {
             // assert
             var testError = new TestError();
@@ -97,10 +97,10 @@ namespace ResultDemo.Tests
             var capturedValue = (string?)default;
 
             // act
-            var result = subject.ContinueWith((ok) =>
+            var result = subject.ContinueWith<int>((ok) =>
             {
                 capturedValue = ok;
-                return Result<int, TestError>.FromOk(1);
+                return 1;
             });
 
             // assert
@@ -110,7 +110,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public void ContinueWith_Func_OuterResultOk_ShouldReturnInnerResult()
+        public void ContinueWith_OuterResultOk_ShouldReturnInnerResult()
         {
             // assert
             var subject = Result<string, TestError>.FromOk("hi");
@@ -118,10 +118,10 @@ namespace ResultDemo.Tests
             var capturedValue = (string?)default;
 
             // act
-            var result = subject.ContinueWith((ok) =>
+            var result = subject.ContinueWith<int>((ok) =>
             {
                 capturedValue = ok;
-                return Result<int, TestError>.FromOk(1);
+                return 1;
             });
 
             // assert
@@ -131,7 +131,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public void ContinueWith_Func_MultipleChained_ShouldReturnFinalOk()
+        public void ContinueWith_MultipleChained_ShouldReturnFinalOk()
         {
             // assert
             var subject = Result<string, TestError>.FromOk("hi");
@@ -145,10 +145,10 @@ namespace ResultDemo.Tests
                 capturedValue = ok;
                 var resultFromService = Result<string, TestError>.FromOk("text2");
 
-                return resultFromService.ContinueWith((ok) =>
+                return resultFromService.ContinueWith<int>((ok) =>
                 {
                     capturedValue2 = ok;
-                    return Result<int, TestError>.FromOk(1);
+                    return 1;
                 });
             });
 
@@ -160,7 +160,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public void ContinueWith_Func_MultipleChained_ShouldReturnFirstError()
+        public void ContinueWith_MultipleChained_ShouldReturnFirstError()
         {
             // assert
             var testError = new TestError();
@@ -175,10 +175,10 @@ namespace ResultDemo.Tests
                 capturedValue = ok;
                 var resultFromService = Result<string, TestError>.FromError(testError);
 
-                return resultFromService.ContinueWith((ok) =>
+                return resultFromService.ContinueWith<int>((ok) =>
                 {
                     capturedValue2 = ok;
-                    return Result<int, TestError>.FromOk(1);
+                    return 1;
                 });
             });
 
@@ -190,7 +190,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public async Task ContinueWithAsync_Func_OuterResultError_ShouldReturnOuterResult()
+        public async Task ContinueWithAsync_OuterResultError_ShouldReturnOuterResult()
         {
             // assert
             var testError = new TestError();
@@ -212,7 +212,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public async Task ContinueWithAsync_Func_OuterResultOk_ShouldReturnInnerResult()
+        public async Task ContinueWithAsync_OuterResultOk_ShouldReturnInnerResult()
         {
             // assert
             var subject = Result<string, TestError>.FromOk("hi");
@@ -233,7 +233,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public async Task ContinueWithAsync_Func_MultipleChained_ShouldReturnFinalOk()
+        public async Task ContinueWithAsync_MultipleChained_ShouldReturnFinalOk()
         {
             // assert
             var subject = Result<string, TestError>.FromOk("hi");
@@ -262,7 +262,7 @@ namespace ResultDemo.Tests
         }
 
         [Test]
-        public async Task ContinueWithAsync_Func_MultipleChained_ShouldReturnFirstError()
+        public async Task ContinueWithAsync_MultipleChained_ShouldReturnFirstError()
         {
             // assert
             var testError = new TestError();
