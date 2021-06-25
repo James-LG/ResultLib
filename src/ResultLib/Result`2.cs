@@ -15,13 +15,11 @@ namespace ResultLib
         where TOk : notnull
         where TError : notnull
     {
-        private readonly bool isOk;
-
         private Result(TOk? ok, TError? error, bool isOk)
         {
             this.Ok = ok;
             this.Error = error;
-            this.isOk = isOk;
+            this.IsOk = isOk;
         }
 
         /// <summary>
@@ -33,6 +31,16 @@ namespace ResultLib
         /// Gets the error result, if available.
         /// </summary>
         public TError? Error { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this Result is <typeparamref name="TOk"/>.
+        /// </summary>
+        public bool IsOk { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this Result is <typeparamref name="TError"/>.
+        /// </summary>
+        public bool IsError => !this.IsOk;
 
         /// <summary>
         /// Converts an <typeparamref name="TOk"/> value into a <see cref="Result{TOk, TError}"/>.
@@ -74,7 +82,7 @@ namespace ResultLib
         /// <returns>Either the contained <see cref="Ok"/> or <see cref="Error"/>.</returns>
         public object GetValue()
         {
-            if (this.isOk)
+            if (this.IsOk)
             {
                 return this.AsOk();
             }
@@ -94,7 +102,7 @@ namespace ResultLib
             where TError2 : notnull
             where TError1 : TError2, TError
         {
-            return this.IsOk()
+            return this.IsOk
                 ? this.AsOk()
                 : Result<TOk, TError2>.FromError((TError1)this.AsError());
         }
@@ -111,7 +119,7 @@ namespace ResultLib
         public Result<TOk2, TError> ContinueWith<TOk2>(Func<TOk, Result<TOk2, TError>> continueFunc)
             where TOk2 : notnull
         {
-            return this.IsOk()
+            return this.IsOk
                 ? continueFunc(this.AsOk())
                 : this.AsError();
         }
@@ -128,7 +136,7 @@ namespace ResultLib
         public Task<Result<TOk2, TError>> ContinueWithAsync<TOk2>(Func<TOk, Task<Result<TOk2, TError>>> continueFunc)
             where TOk2 : notnull
         {
-            return this.IsOk()
+            return this.IsOk
                 ? continueFunc(this.AsOk())
                 : Task.FromResult(Result<TOk2, TError>.FromError(this.AsError()));
         }
@@ -139,7 +147,7 @@ namespace ResultLib
         /// <param name="continueFunc">The function to perform if this result is Ok.</param>
         public void ContinueWithAction(Action<TOk> continueFunc)
         {
-            if (this.IsOk())
+            if (this.IsOk)
             {
                 continueFunc(this.AsOk());
             }
@@ -152,27 +160,9 @@ namespace ResultLib
         /// <returns>The task performing the Ok operation or a completed task.</returns>
         public Task ContinueWithActionAsync(Func<TOk, Task> continueFunc)
         {
-            return this.IsOk()
+            return this.IsOk
                 ? continueFunc(this.AsOk())
                 : Task.CompletedTask;
-        }
-
-        /// <summary>
-        /// Checks whether the result is <typeparamref name="TOk"/>.
-        /// </summary>
-        /// <returns>Whether the result is <typeparamref name="TOk"/>.</returns>
-        public bool IsOk()
-        {
-            return this.isOk;
-        }
-
-        /// <summary>
-        /// Checks whether the result is <typeparamref name="TError"/>.
-        /// </summary>
-        /// <returns>Whether the result is <typeparamref name="TError"/>.</returns>
-        public bool IsError()
-        {
-            return !this.IsOk();
         }
 
         /// <summary>

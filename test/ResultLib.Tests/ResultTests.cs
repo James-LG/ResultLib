@@ -14,6 +14,18 @@ namespace ResultDemo.Tests
         internal class TestError2 : ITestError { }
 
         [Test]
+        public void FromOk_ShouldThrowForNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => Result<string, TestError>.FromOk(null!));
+        }
+
+        [Test]
+        public void FromError_ShouldThrowForNull()
+        {
+            Assert.Throws<ArgumentNullException>(() => Result<string, TestError>.FromError(null!));
+        }
+
+        [Test]
         public void ContinueWithAction_ShouldDoIfOk()
         {
             // assert
@@ -298,7 +310,7 @@ namespace ResultDemo.Tests
             var subject = Result<string, TestError>.FromOk("hi");
 
             // act
-            var val = subject.IsOk();
+            var val = subject.IsOk;
 
             // assert
             Assert.IsTrue(val);
@@ -311,7 +323,7 @@ namespace ResultDemo.Tests
             var subject = Result<string, TestError>.FromError(new TestError());
 
             // act
-            var val = subject.IsOk();
+            var val = subject.IsOk;
 
             // assert
             Assert.IsFalse(val);
@@ -324,7 +336,7 @@ namespace ResultDemo.Tests
             var subject = Result<string, TestError>.FromError(new TestError());
 
             // act
-            var val = subject.IsError();
+            var val = subject.IsError;
 
             // assert
             Assert.IsTrue(val);
@@ -337,7 +349,7 @@ namespace ResultDemo.Tests
             var subject = Result<string, TestError>.FromOk("hi");
 
             // act
-            var val = subject.IsError();
+            var val = subject.IsError;
 
             // assert
             Assert.IsFalse(val);
